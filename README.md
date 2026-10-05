@@ -8,22 +8,11 @@ Actra is a human-action data platform for collecting, structuring, annotating, v
 
 Robotics and embodied AI teams need large quantities of high-quality, context-rich data. Actra helps turn raw human activity into organized, validated, and reusable datasets with a workflow that spans capture, review, quality scoring, and licensing.
 
-## Features
+## Current prototype
 
-The current product includes:
+The current implementation includes backend registration/login endpoints that issue JWTs, read APIs for task and dataset catalogs, a metadata-only submission endpoint persisted in H2/PostgreSQL, and browser-side MediaPipe hand/pose landmark preview. The dashboard also displays illustrative seeded data.
 
-- Contributor registration and login
-- Role-based access control for contributors, companies, and admins
-- Task discovery and campaign management
-- Webcam capture workflow
-- Human hand and pose tracking via MediaPipe
-- Action timeline and review flow
-- Dataset quality scoring
-- Dataset marketplace and listings
-- Company request workflow
-- Admin review queue
-- JWT-based authentication
-- PostgreSQL-ready persistence
+This is not yet an end-to-end data-collection or marketplace product: video recording/upload, semantic action classification, annotation editing, automated quality scoring, consent verification, dataset creation, company request submission, admin review decisions, and JWT/role authorization enforcement are not implemented.
 
 ## Technology stack
 
@@ -57,6 +46,8 @@ The current product includes:
 
 ## Architecture
 
+Intended workflow (not yet end-to-end implemented):
+
 Contributor
   ↓
 Webcam + consent capture
@@ -80,42 +71,30 @@ git clone <repository-url>
 cd Actra
 ```
 
-### 2. Configure environment variables
-
-Copy the example file and update values as needed:
+### 2. Start the backend locally (H2, no cloud or database service required)
 
 ```powershell
-Copy-Item .env.example .env
-```
-
-Then review the values in `.env` and `.env.example` before starting the app.
-
-### 3. Start PostgreSQL
-
-```powershell
-docker compose up -d postgres
-```
-
-### 4. Start the backend
-
-```powershell
-cd backend
+Set-Location backend
+$env:JWT_SECRET = (& node -e "console.log(require('node:crypto').randomBytes(32).toString('base64'))")
 mvn spring-boot:run
 ```
 
 The backend runs on `http://localhost:8080` by default.
 
-### 5. Start the frontend
+### 3. Start the frontend
 
 ```powershell
-cd frontend
+Set-Location frontend
 npm install
 npm run dev -- --host 0.0.0.0
 ```
 
 The frontend runs on `http://localhost:5173` by default.
+Run the frontend command in a second terminal. `.env.example` documents configuration but is not automatically loaded by Maven or Vite.
 
-### 6. Optional: run the local helper script
+PostgreSQL is optional for local development. To use it, start the local PostgreSQL service and activate the `postgres` Spring profile with `DATABASE_URL`, `DATABASE_USERNAME`, and `DATABASE_PASSWORD` set. Docker Compose is an optional local tool, not a cloud requirement.
+
+### 4. Optional: run the local helper script
 
 ```powershell
 ./scripts/run-local.sh
@@ -123,20 +102,13 @@ The frontend runs on `http://localhost:5173` by default.
 
 ## Environment variables
 
-The project uses environment variables for configuration. A safe example is provided in `.env.example`.
+The project uses environment variables for configuration. `.env.example` is a reference template and is not loaded automatically; do not copy it into a committed `.env` file.
 
-Required variables include:
+Required for local backend startup:
 
-- `DATABASE_URL`
-- `DATABASE_USERNAME`
-- `DATABASE_PASSWORD`
 - `JWT_SECRET`
-- `CORS_ALLOWED_ORIGINS`
-- `FRONTEND_API_URL`
-- `OLLAMA_BASE_URL`
-- `OLLAMA_MODEL`
-- `STORAGE_PATH`
-- `SERVER_PORT`
+
+Optional variables include `CORS_ALLOWED_ORIGINS`, `VITE_API_URL`, `STORAGE_PATH`, `OLLAMA_BASE_URL`, and `OLLAMA_MODEL`. PostgreSQL variables (`DATABASE_URL`, `DATABASE_USERNAME`, and `DATABASE_PASSWORD`) are needed only when activating the `postgres` profile.
 
 ## Production and deployment notes
 
@@ -144,6 +116,12 @@ Required variables include:
 - Do not commit `.env` files or production secrets.
 - Keep uploads and large datasets outside the Git repository.
 - The storage layer is intentionally structured so local filesystem storage can be replaced by a cloud object-store later.
+- Azure deployment infrastructure is prepared but requires an Azure subscription to provision.
+- No Azure resources have been provisioned. The local app can be run without paid cloud services; provisioning the prepared Azure resources may incur charges.
+
+## Prototype verification scope
+
+The UI and backend currently demonstrate seeded catalog/task/queue views, backend registration and login endpoints, a contributor submission metadata endpoint, and browser-side hand/pose landmark preview. Seeded dashboard values and catalog/task/request/queue entries are illustrative sample data. Video recording and upload, semantic action classification, annotation editing, quality-review decisions, dataset creation, company request submission, and admin queue decisions are not currently end-to-end workflows. JWTs are issued by the auth endpoints, but the backend does not yet enforce JWT authentication or role authorization on API routes.
 
 ## Dataset and data rights
 
@@ -153,9 +131,9 @@ This separation exists to avoid implying that contributor data is automatically 
 
 ## Documentation
 
-- [docs/architecture.md](docs/architecture.md)
-- [docs/api.md](docs/api.md)
-- [docs/dataset-format.md](docs/dataset-format.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/API.md](docs/API.md)
+- [docs/DATASET-FORMAT.md](docs/DATASET-FORMAT.md)
 - [docs/deployment.md](docs/deployment.md)
 
 ## Contributing

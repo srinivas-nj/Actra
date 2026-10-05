@@ -38,6 +38,14 @@ build/
 # Local runtime / data files
 storage/*
 !storage/.gitkeep
+datasets/
+private-datasets/
+videos/
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
 
 # Databases and dumps
 *.db

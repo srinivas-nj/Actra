@@ -35,7 +35,7 @@ public class DataSeeder implements ApplicationRunner {
         CompanyRequestRepository companyRequestRepository,
         AdminQueueRepository adminQueueRepository,
         PasswordEncoder passwordEncoder,
-        @Value("${actra.demo-password:ChangeMe123!}") String demoPassword
+        @Value("${actra.demo-password:}") String demoPassword
     ) {
         this.userRepository = userRepository;
         this.datasetRepository = datasetRepository;
@@ -48,7 +48,7 @@ public class DataSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (userRepository.count() == 0) {
+        if (userRepository.count() == 0 && !demoPassword.isBlank()) {
             userRepository.saveAll(java.util.List.of(
                 new UserEntity("alice_contributor", "alice@actra.ai", passwordEncoder.encode(demoPassword), Role.CONTRIBUTOR),
                 new UserEntity("northstar_company", "northstar@actra.ai", passwordEncoder.encode(demoPassword), Role.COMPANY),

@@ -15,7 +15,7 @@ public class JwtService {
 
     private final SecretKey secretKey;
 
-    public JwtService(@Value("${jwt.secret:ActraLocalDevelopmentOnlyChangeMe}") String secret) {
+    public JwtService(@Value("${jwt.secret}") String secret) {
         if (secret == null || secret.length() < 32) {
             throw new IllegalArgumentException("JWT secret must be configured and at least 32 characters long.");
         }

@@ -130,9 +130,9 @@ const statCards: StatItem[] = [
 ]
 
 const roleCards = [
-  { path: '/contributor', title: 'Contributor', summary: 'Record demos, manage submissions, and track incentives.', icon: Camera },
-  { path: '/company', title: 'Company', summary: 'Browse the marketplace and order custom data campaigns.', icon: Building2 },
-  { path: '/admin', title: 'Admin', summary: 'Review recordings, approve submissions, and publish data products.', icon: BriefcaseBusiness },
+  { path: '/contributor', title: 'Contributor', summary: 'Browse sample tasks, preview camera landmarks, and submit metadata.', icon: Camera },
+  { path: '/company', title: 'Company', summary: 'Browse sample marketplace listings and collection requests.', icon: Building2 },
+  { path: '/admin', title: 'Admin', summary: 'Inspect the read-only sample review queue.', icon: BriefcaseBusiness },
 ]
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? 'http://localhost:8080').replace(/\/$/, '')
@@ -293,10 +293,10 @@ function HomePage({
         <div className="glass-panel p-6">
           <div className="mb-5 flex items-center justify-between">
             <div>
-              <div className="text-sm uppercase tracking-[0.2em] text-slate-400">Live platform</div>
+              <div className="text-sm uppercase tracking-[0.2em] text-slate-400">Prototype data</div>
               <div className="mt-1 text-xl font-semibold">Dataset pipeline</div>
             </div>
-            <div className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300">Healthy</div>
+            <div className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-200">Sample values</div>
           </div>
 
           <div className="space-y-4">
@@ -318,11 +318,11 @@ function HomePage({
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-violet-500/20 bg-violet-500/10 p-3">
-              <div className="text-xs text-violet-200">Action recognition</div>
+              <div className="text-xs text-violet-200">Sample quality score</div>
               <div className="mt-1 text-2xl font-bold text-white">{overview.averageQuality.toFixed(1)}%</div>
             </div>
             <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3">
-              <div className="text-xs text-cyan-200">Campaigns live</div>
+              <div className="text-xs text-cyan-200">Open tasks (sample)</div>
               <div className="mt-1 text-2xl font-bold text-white">{overview.activeCampaigns}</div>
             </div>
           </div>
@@ -428,7 +428,7 @@ function ContributorPage({ tasks }: { tasks: Task[] }) {
         <div className="space-y-6">
           <div className="glass-panel p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-white">Available tasks</h3>
+              <h3 className="text-xl font-semibold text-white">Available tasks (sample data)</h3>
               <button className="secondary-button">Browse all</button>
             </div>
             <div className="space-y-3">
@@ -457,19 +457,14 @@ function ContributorPage({ tasks }: { tasks: Task[] }) {
         <div className="space-y-6">
           <DemoCapture />
           <SubmissionForm />
-          <div className="glass-panel p-5">
-            <h3 className="text-xl font-semibold text-white">Submission status</h3>
-            <div className="mt-4 space-y-3">
-              {['Camera check passed', 'Consent verified', 'Task instructions read', 'Recording ready for review'].map((step, index) => (
-                <div key={step} className="flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/60 p-3">
-                  <div className={`flex h-7 w-7 items-center justify-center rounded-full ${index < 3 ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-800 text-slate-400'}`}>
-                    {index < 3 ? <CheckCircle2 className="h-4 w-4" /> : <span className="text-xs">{index + 1}</span>}
-                  </div>
-                  <span className="text-sm text-slate-200">{step}</span>
-                </div>
-              ))}
+            <div className="glass-panel p-5">
+              <h3 className="text-xl font-semibold text-white">Prototype workflow limits</h3>
+              <ul className="mt-4 space-y-2 text-sm text-slate-300">
+                <li>Camera preview and landmarks only; video is not recorded or uploaded.</li>
+                <li>Submission saves form metadata only.</li>
+                <li>Consent verification and admin review are not implemented.</li>
+              </ul>
             </div>
-          </div>
         </div>
       </div>
     </div>
@@ -480,6 +475,7 @@ function SubmissionForm() {
   const [form, setForm] = useState(emptySubmission)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState('')
+  const [submitSucceeded, setSubmitSucceeded] = useState(false)
 
   const handleChange = (field: keyof typeof emptySubmission, value: string) => {
     setForm((current) => ({ ...current, [field]: value }))
@@ -489,19 +485,25 @@ function SubmissionForm() {
     event.preventDefault()
     setIsSubmitting(true)
     setSubmitMessage('')
+    setSubmitSucceeded(false)
 
     try {
       const response = await axiosClient.post('/api/submissions', {
         contributorName: form.contributorName || 'Contributor',
         taskId: form.taskId || 'task-301',
         location: form.location || 'Contributor studio',
-        notes: form.notes || 'New demo submission queued for review',
+        notes: form.notes || 'Contributor submission metadata.',
       })
 
-      setSubmitMessage(response.data?.message || 'Submission accepted and queued for review.')
+      if (typeof response.data?.message !== 'string' || !response.data.message.trim()) {
+        throw new Error('The server returned no submission confirmation.')
+      }
+      setSubmitMessage(response.data.message)
+      setSubmitSucceeded(true)
       setForm(emptySubmission)
     } catch (error) {
-      setSubmitMessage('Submission failed. Please try again.')
+      console.error(error)
+      setSubmitMessage(error instanceof Error ? `Submission failed: ${error.message}` : 'Submission failed with an unexpected error.')
     } finally {
       setIsSubmitting(false)
     }
@@ -556,7 +558,7 @@ function SubmissionForm() {
           <button type="submit" disabled={isSubmitting} className="primary-button disabled:opacity-60">
             {isSubmitting ? 'Submitting...' : 'Submit demo'}
           </button>
-          {submitMessage && <span className="text-sm text-emerald-300">{submitMessage}</span>}
+          {submitMessage && <span className={`text-sm ${submitSucceeded ? 'text-emerald-300' : 'text-rose-300'}`}>{submitMessage}</span>}
         </div>
       </form>
     </div>
@@ -572,7 +574,7 @@ function CompanyPage({
 }) {
   return (
     <div className="space-y-8">
-      <SectionHeading eyebrow="Company" title="Acquire data for your product and research pipeline" />
+      <SectionHeading eyebrow="Company" title="Browse sample marketplace data and collection requests" />
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6">
@@ -608,7 +610,7 @@ function CompanyPage({
 
         <div className="space-y-6">
           <div className="glass-panel p-5">
-            <h3 className="text-xl font-semibold text-white">Custom collection requests</h3>
+            <h3 className="text-xl font-semibold text-white">Custom collection requests (sample data)</h3>
             <div className="mt-4 space-y-3">
               {requests.map((request) => (
                 <div key={request.id} className="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
@@ -641,8 +643,9 @@ function CompanyPage({
 function AdminPage({ adminQueue }: { adminQueue: QueueItem[] }) {
   return (
     <div className="space-y-8">
-      <SectionHeading eyebrow="Admin" title="Review, approve, and publish dataset bundles" />
+      <SectionHeading eyebrow="Admin" title="Read-only review queue and sample metrics" />
 
+      <p className="text-sm text-amber-200">All figures and queue rows below are illustrative sample data.</p>
       <div className="grid gap-4 md:grid-cols-3">
         {[
           { label: 'Submissions in review', value: '41', icon: Activity },
@@ -660,7 +663,7 @@ function AdminPage({ adminQueue }: { adminQueue: QueueItem[] }) {
       </div>
 
       <div className="glass-panel p-5">
-        <h3 className="text-xl font-semibold text-white">Review queue</h3>
+        <h3 className="text-xl font-semibold text-white">Review queue (read-only sample data)</h3>
         <div className="mt-4 overflow-hidden rounded-2xl border border-white/10">
           <table className="min-w-full divide-y divide-white/10 text-left text-sm">
             <thead className="bg-slate-900/80 text-slate-300">
@@ -708,6 +711,7 @@ function DemoCapture() {
   const handLandmarkerRef = useRef<HandLandmarker | null>(null)
   const poseLandmarkerRef = useRef<PoseLandmarker | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const hasProcessedFrameRef = useRef(false)
   const [status, setStatus] = useState('Camera idle')
   const [isRunning, setIsRunning] = useState(false)
 
@@ -719,6 +723,8 @@ function DemoCapture() {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop())
       }
+      handLandmarkerRef.current?.close()
+      poseLandmarkerRef.current?.close()
     }
   }, [])
 
@@ -731,6 +737,14 @@ function DemoCapture() {
       streamRef.current.getTracks().forEach((track) => track.stop())
       streamRef.current = null
     }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    handLandmarkerRef.current?.close()
+    handLandmarkerRef.current = null
+    poseLandmarkerRef.current?.close()
+    poseLandmarkerRef.current = null
+    hasProcessedFrameRef.current = false
     setIsRunning(false)
     setStatus('Camera stopped')
   }
@@ -746,13 +760,14 @@ function DemoCapture() {
         audio: false,
       })
 
+      hasProcessedFrameRef.current = false
+      streamRef.current = stream
       const video = videoRef.current
       const canvas = canvasRef.current
       if (!video || !canvas) {
-        return
+        throw new Error('Camera preview is not available.')
       }
 
-      streamRef.current = stream
       video.srcObject = stream
       await video.play()
 
@@ -769,7 +784,7 @@ function DemoCapture() {
       })
       poseLandmarkerRef.current = await PoseLandmarker.createFromOptions(vision, {
         baseOptions: {
-          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker_lite/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
+          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
         },
         runningMode: 'VIDEO',
         numPoses: 1,
@@ -782,51 +797,77 @@ function DemoCapture() {
           return
         }
 
+        if (
+          activeVideo.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
+          activeVideo.videoWidth === 0 ||
+          activeVideo.videoHeight === 0
+        ) {
+          animationRef.current = requestAnimationFrame(render)
+          return
+        }
+
+        if (activeCanvas.width !== activeVideo.videoWidth || activeCanvas.height !== activeVideo.videoHeight) {
+          activeCanvas.width = activeVideo.videoWidth
+          activeCanvas.height = activeVideo.videoHeight
+        }
+
         const ctx = activeCanvas.getContext('2d')
         if (!ctx) {
           return
         }
 
-        ctx.drawImage(activeVideo, 0, 0, activeCanvas.width, activeCanvas.height)
+        try {
+          ctx.drawImage(activeVideo, 0, 0, activeCanvas.width, activeCanvas.height)
 
-        const handResults = handLandmarkerRef.current?.detectForVideo(activeVideo, performance.now())
-        const poseResults = poseLandmarkerRef.current?.detectForVideo(activeVideo, performance.now())
+          const handResults = handLandmarkerRef.current?.detectForVideo(activeVideo, performance.now())
+          const poseResults = poseLandmarkerRef.current?.detectForVideo(activeVideo, performance.now())
 
-        for (const hand of handResults?.landmarks ?? []) {
-          const wrist = hand[0]
-          if (wrist) {
-            ctx.beginPath()
-            ctx.arc(wrist.x * activeCanvas.width, wrist.y * activeCanvas.height, 12, 0, Math.PI * 2)
-            ctx.fillStyle = 'rgba(34, 211, 238, 0.7)'
-            ctx.fill()
-          }
-        }
-
-        for (const pose of poseResults?.landmarks ?? []) {
-          ctx.beginPath()
-          ctx.strokeStyle = 'rgba(168, 85, 247, 0.8)'
-          ctx.lineWidth = 3
-          for (let i = 0; i < pose.length - 1; i += 1) {
-            const current = pose[i]
-            const next = pose[i + 1]
-            if (current && next) {
-              ctx.moveTo(current.x * activeCanvas.width, current.y * activeCanvas.height)
-              ctx.lineTo(next.x * activeCanvas.width, next.y * activeCanvas.height)
+          for (const hand of handResults?.landmarks ?? []) {
+            const wrist = hand[0]
+            if (wrist) {
+              ctx.beginPath()
+              ctx.arc(wrist.x * activeCanvas.width, wrist.y * activeCanvas.height, 12, 0, Math.PI * 2)
+              ctx.fillStyle = 'rgba(34, 211, 238, 0.7)'
+              ctx.fill()
             }
           }
-          ctx.stroke()
+
+          for (const pose of poseResults?.landmarks ?? []) {
+            ctx.beginPath()
+            ctx.strokeStyle = 'rgba(168, 85, 247, 0.8)'
+            ctx.lineWidth = 3
+            for (let i = 0; i < pose.length - 1; i += 1) {
+              const current = pose[i]
+              const next = pose[i + 1]
+              if (current && next) {
+                ctx.moveTo(current.x * activeCanvas.width, current.y * activeCanvas.height)
+                ctx.lineTo(next.x * activeCanvas.width, next.y * activeCanvas.height)
+              }
+            }
+            ctx.stroke()
+          }
+        } catch (error) {
+          console.error(error)
+          stopCamera()
+          setStatus(error instanceof Error ? `Camera inference failed: ${error.message}` : 'Camera inference failed with an unexpected error.')
+          return
+        }
+
+        if (!hasProcessedFrameRef.current) {
+          hasProcessedFrameRef.current = true
+          setStatus('Hand and pose landmarks active')
         }
 
         animationRef.current = requestAnimationFrame(render)
       }
 
-      setStatus('Pose tracking active')
+      setStatus('Waiting for camera frame')
       setIsRunning(true)
       render()
     } catch (error) {
       console.error(error)
-      setStatus('Browser camera access unavailable. Use a secure browser environment to test capture.')
-      setIsRunning(false)
+      stopCamera()
+      setStatus(error instanceof Error ? `Camera setup failed: ${error.message}` : 'Camera setup failed with an unknown error.')
     }
   }
 

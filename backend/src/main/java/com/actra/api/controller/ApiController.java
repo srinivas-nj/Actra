@@ -144,15 +144,15 @@ public class ApiController {
             request.contributorName() == null || request.contributorName().isBlank() ? "Contributor" : request.contributorName(),
             request.taskId(),
             request.location() == null || request.location().isBlank() ? "Unknown" : request.location(),
-            request.notes() == null || request.notes().isBlank() ? "Submission accepted and routed to the review queue." : request.notes(),
-            "Queued for review"
+            request.notes() == null || request.notes().isBlank() ? "Contributor submission metadata." : request.notes(),
+            "Metadata saved"
         ));
 
         return new SubmissionDto(
             submission.getSubmissionId(),
             submission.getStatus(),
             submission.getTaskId(),
-            "Submission accepted and routed to the review queue."
+            "Submission metadata saved. Video upload and admin review integration are not implemented."
         );
     }
 
