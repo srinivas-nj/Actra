@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "prod"
+    },
+    "location": {
+      "value": "eastus"
+    },
+    "appServicePlanSku": {
+      "value": "B1"
+    },
+    "frontendAllowedOrigins": {
+      "value": "https://example.com"
+    },
+    "backendAppName": {
+      "value": "actra-backend"
+    },
+    "frontendAppName": {
+      "value": "actra-frontend"
+    },
+    "postgresAdminLogin": {
+      "value": "actraadmin"
+    },
+    "postgresAdminPassword": {
+      "value": "ChangeThisPassword123!"
+    },
+    "postgresDatabaseName": {
+      "value": "actra"
+    },
+    "storageSku": {
+      "value": "Standard_LRS"
+    },
+    "keyVaultName": {
+      "value": "actrakev"
+    }
+  }
+}
