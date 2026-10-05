@@ -1,0 +1,53 @@
+# Root-level project files
+.env
+.env.*
+!.env.example
+
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/coverage/
+frontend/.vite/
+
+# Backend build output
+backend/target/
+backend/.mvn/timing.properties
+backend/.mvn/wrapper/*.jar
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test / coverage output
+coverage/
+out/
+build/
+
+# Local runtime / data files
+storage/*
+!storage/.gitkeep
+
+# Databases and dumps
+*.db
+*.sqlite
+*.sqlite3
+*.sql.gz
+*.dump
+
+# Local environment files
+*.local
+
+# Generated files
+*.class
