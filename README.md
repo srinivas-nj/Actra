@@ -67,7 +67,7 @@ Robotics / AI companies
 ### 1. Clone the repository
 
 ```powershell
-git clone <repository-url>
+git clone --branch master https://github.com/srinivas-nj/Actra.git
 cd Actra
 ```
 
